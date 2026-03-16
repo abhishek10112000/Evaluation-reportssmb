@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vehicle Evaluation Brochure — EPIC Cars</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════ -->
+<div id="login-screen" style="display:none;">
+
+  <!-- Background decoration -->
+  <div class="login-bg-left"></div>
+  <div class="login-bg-right"></div>
+
+  <div class="login-box" id="login-box">
+
+    <!-- Logo -->
+    <div class="login-logo-wrap">
+      <div class="login-epic-box">EPIC</div>
+      <div class="login-car-icon">
+        <svg viewBox="0 0 64 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M4 16 L10 8 L22 6 L42 6 L54 12 L60 16"/>
+          <line x1="4" y1="16" x2="60" y2="16"/>
+          <circle cx="16" cy="19" r="4"/>
+          <circle cx="48" cy="19" r="4"/>
+          <path d="M12 10 L20 8 L44 8 L50 12 L12 12 Z"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="login-title">Vehicle Evaluation</div>
+    <div class="login-subtitle">Sign in to your account</div>
+
+    <!-- Form -->
+    <div class="login-form">
+      <div class="login-field">
+        <span class="login-field-icon">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 1114 0H3z"/></svg>
+        </span>
+        <input id="login-username" type="text" placeholder="Username" autocomplete="username"/>
+      </div>
+
+      <div class="login-field">
+        <span class="login-field-icon">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"/></svg>
+        </span>
+        <input id="login-password" type="password" placeholder="Password" autocomplete="current-password"/>
+        <button class="login-pw-eye" onclick="togglePw()" title="Show/hide">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </button>
+      </div>
+
+      <div id="login-error" class="login-error-msg"></div>
+
+      <button class="login-submit-btn" onclick="handleLogin()">
+        Sign In
+        <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/></svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     APP ROOT (shown after login)
+══════════════════════════════ -->
+<div id="app-root" style="display:none; flex-direction:column; height:100vh;">
+
+<!-- ══════════════════════════════
+     HEADER
+══════════════════════════════ -->
+<header class="app-header">
+  <div class="logo">
+    <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="logo-box">EPIC</div>
+    <span class="logo-title">Vehicle Evaluation</span>
+  </div>
+
+  <div class="header-actions">
+    <!-- Save Draft — visible always -->
+    <button class="btn btn-secondary hdr-draft" onclick="saveDraft()" title="Save Draft">
+      <span class="btn-icon">⊙</span>
+      <span class="btn-label">Save Draft</span>
+    </button>
+
+    <!-- Reset — hidden on mobile, use sidebar instead -->
+    <button class="btn btn-ghost hdr-reset" onclick="resetForm()" title="Reset Form">
+      <span class="btn-icon">↺</span>
+      <span class="btn-label">Reset</span>
+    </button>
+
+    <!-- Generate PDF — visible always -->
+    <button class="btn btn-primary hdr-pdf" id="hdr-pdf-btn" onclick="generatePDF()" title="Generate PDF" disabled>
+      <span class="btn-icon">⬇</span>
+      <span class="btn-label">PDF</span>
+    </button>
+
+    <div class="header-divider hdr-divider"></div>
+
+    <!-- User badge + Logout — always visible -->
+    <div class="user-badge">
+      <div class="user-avatar" id="hdr-avatar">A</div>
+      <div class="user-info hdr-user-info">
+        <div class="user-badge-name" id="hdr-name">User</div>
+        <div class="role-badge role-admin" id="hdr-role">ADMIN</div>
+      </div>
+      <button class="btn btn-ghost hdr-logout" onclick="doLogout()" title="Logout">⏻</button>
+    </div>
+  </div>
+</header>
+
+<!-- Sidebar overlay -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- ══════════════════════════════
+     LAYOUT
+══════════════════════════════ -->
+<div class="layout">
+
+  <!-- ── SIDEBAR ── -->
+  <nav class="sidebar">
+    <div class="sidebar-label">Dashboard</div>
+    <div class="nav-item analytics-nav" onclick="showSection('analytics', this)"><span class="dot analytics-dot"></span>📊 Analytics</div>
+    <div class="nav-item analytics-nav" onclick="showSection('performance', this)"><span class="dot analytics-dot"></span>🏆 Performance</div>
+
+    <div class="sidebar-label" style="margin-top:10px;">Sections</div>
+    <div class="nav-item active"  onclick="showSection('overview',      this)"><span class="dot"></span>Overview</div>
+    <div class="nav-item"         onclick="showSection('images',        this)"><span class="dot"></span>Vehicle Images</div>
+    <div class="nav-item"         onclick="showSection('interior',      this)"><span class="dot"></span>Interior Details</div>
+    <div class="nav-item"         onclick="showSection('mechanical',    this)"><span class="dot"></span>Mechanical</div>
+    <div class="nav-item"         onclick="showSection('bodyframe',     this)"><span class="dot"></span>Body &amp; Frame</div>
+    <div class="nav-item"         onclick="showSection('lights',        this)"><span class="dot"></span>Lights</div>
+    <div class="nav-item"         onclick="showSection('features',      this)"><span class="dot"></span>Features</div>
+    <div class="nav-item"         onclick="showSection('exterior',      this)"><span class="dot"></span>Exterior Details</div>
+    <div class="nav-item"         onclick="showSection('tyres',         this)"><span class="dot"></span>Tyres &amp; Accident</div>
+    <div class="nav-item"         onclick="showSection('insurance',     this)"><span class="dot"></span>Insurance</div>
+    <div class="nav-item"         onclick="showSection('warranty',      this)"><span class="dot"></span>Warranty &amp; AMC</div>
+    <div class="nav-item"         onclick="showSection('registration',  this)"><span class="dot"></span>Registration</div>
+
+    <div class="sidebar-label" style="margin-top:16px; color: #e8a020;">Reference Only</div>
+    <div class="nav-item rc-nav" onclick="showSection('rcdetails', this)"><span class="dot rc-dot"></span>RC Details ⚠</div>
+
+    <div class="sidebar-label" style="margin-top:16px;">Saved Files</div>
+    <div class="nav-item" onclick="showSection('savedpdfs', this); renderPDFList();"><span class="dot" style="background:#3b82f6"></span>📁 Saved PDFs</div>
+
+    <div class="sidebar-label" style="margin-top:8px;">Account</div>
+    <div class="nav-item" id="nav-usermgmt" onclick="showSection('users', this); renderUserTable();"><span class="dot" style="background:#a855f7"></span>👥 Users &amp; Password</div>
+
+    <div class="sidebar-label" style="margin-top:20px;">Progress</div>
+    <div style="padding: 0 20px 8px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;" id="progress-label">0 of 12 sections filled</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── MAIN ── -->
+  <main class="main" id="main-content">
+
+    <!-- ── Sticky Action Bar (always visible on all screens) ── -->
+    <div class="sticky-action-bar" id="sticky-action-bar">
+      <div class="sticky-bar-left">
+        <span class="sticky-bar-status" id="sticky-status">📝 Form not saved</span>
+      </div>
+      <div class="sticky-bar-right">
+        <button class="btn btn-ghost  sab-btn" onclick="resetForm()" title="Reset Form">
+          ↺ <span class="sab-label">Reset</span>
+        </button>
+        <button class="btn btn-secondary sab-btn" onclick="saveDraft()">
+          ⊙ <span class="sab-label">Save Draft</span>
+        </button>
+        <button class="btn btn-primary sab-btn" id="sab-pdf-btn" onclick="generatePDF()" disabled>
+          ⬇ <span class="sab-label">Download PDF</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ════════════════════════
+         SECTION: OVERVIEW
+    ════════════════════════ -->
+    <section class="section active" id="s-overview">
+      <div class="section-header">
+        <h2>Vehicle Overview</h2>
+        <p>Core identification and summary details</p>
+      </div>
+
+      <!-- Live preview card -->
+      <div class="overview-card">
+        <div class="ov-thumb-placeholder" id="ov-thumb-wrap">
+          <svg width="32" height="32" fill="none" stroke="#555" stroke-width="1.5" viewBox="0 0 24 24">
+            <rect x="2" y="6" width="20" height="12" rx="2"/>
+            <circle cx="7" cy="18" r="2"/>
+            <circle cx="17" cy="18" r="2"/>
+            <path d="M2 12h20"/>
+          </svg>
+        </div>
+        <div class="ov-info">
+          <div class="ov-title" id="ov-title">— Vehicle Details —</div>
+          <div class="ov-subtitle" id="ov-sub">Fill in the details below</div>
+
+          <!-- Icon Stats Bar — mirrors the brochure header -->
+          <div class="icon-stats-bar">
+
+            <div class="icon-stat">
+              <img src="icon-km.svg" alt="KM"/>
+              <span id="ov-km">— KM</span>
+            </div>
+
+            <div class="icon-stat">
+              <img src="icon-fuel.svg" alt="Fuel"/>
+              <span id="ov-fuel">Fuel Type: Diesel</span>
+            </div>
+
+            <div class="icon-stat">
+              <img src="icon-transmission.svg" alt="Transmission"/>
+              <span id="ov-trans">Transmission: Automatic</span>
+            </div>
+
+            <div class="icon-stat">
+              <img src="icon-owners.svg" alt="Owners"/>
+              <span id="ov-owners">Number of Owners: —</span>
+            </div>
+
+            <div class="icon-stat">
+              <img src="icon-rto.svg" alt="RTO"/>
+              <span id="ov-rto">RTO: —</span>
+            </div>
+
+          </div><!-- /.icon-stats-bar -->
+        </div>
+      </div>
+
+      <!-- Vehicle Identity -->
+      <div class="card">
+        <div class="card-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+          </svg>
+          Vehicle Identity
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>Brand / Make</label>
+            <input id="f-brand"   value="" oninput="updateOverview()"/></div>
+          <div class="field"><label>Model</label>
+            <input id="f-model"   value=""           oninput="updateOverview()"/></div>
+          <div class="field"><label>Variant</label>
+            <input id="f-variant" value=""   oninput="updateOverview()"/></div>
+          <div class="field"><label>Color</label>
+            <input id="f-color"   value=""           oninput="updateOverview()"/></div>
+          <div class="field"><label>Make Year</label>
+            <input id="f-makeyear" type="number" placeholder="e.g. 2018" oninput="updateOverview()"/></div>
+          <div class="field"><label>Registration Date</label>
+            <input id="f-regdate" type="date" value="" oninput="updateOverview()"/></div>
+          <div class="field"><label>Registration Number</label>
+            <input id="f-regno"   value="" oninput="updateOverview()"/></div>
+          <div class="field"><label>Registration Validity</label>
+            <input id="f-regvalid" type="date" value=""/></div>
+          <div class="field"><label>Vehicle Body Type</label>
+            <select id="f-bodytype">
+              <option selected>MUV/SUV</option>
+              <option>Sedan</option><option>Hatchback</option>
+              <option>Coupe</option><option>Convertible</option><option>Pickup</option>
+            </select>
+          </div>
+          <div class="field"><label>Seating Capacity</label>
+            <input id="f-seats" type="number" value=""/>
+        </div>
+      </div>
+
+      <!-- Drivetrain -->
+      <div class="card">
+        <div class="card-title">⚙ Drivetrain</div>
+        <div class="form-grid three">
+          <div class="field"><label>Fuel Type</label>
+            <select id="f-fuel" onchange="updateOverview()">
+              <option selected>Diesel</option><option>Petrol</option>
+              <option>CNG</option><option>Electric</option><option>Hybrid</option>
+            </select>
+          </div>
+          <div class="field"><label>Transmission</label>
+            <select id="f-trans" onchange="updateOverview()">
+              <option selected>Automatic</option><option>Manual</option>
+              <option>AMT</option><option>CVT</option>
+            </select>
+          </div>
+          <div class="field"><label>Engine CC</label>
+            <input id="f-engcc" placeholder="e.g. 1950"/></div>
+          <div class="field"><label>Engine Number</label>
+            <input id="f-engno" placeholder="Engine number"/></div>
+          <div class="field"><label>Chassis / VIN</label>
+            <input id="f-chassis" placeholder="VIN number"/></div>
+          <div class="field"><label>KM Driven</label>
+            <input id="f-km" type="number" value="" oninput="updateOverview()"/></div>
+          <div class="field"><label>Fuel Efficiency (KMPL)</label>
+            <input id="f-mileage" placeholder="e.g. 14"/></div>
+          <div class="field"><label>Number of Owners</label>
+            <input id="f-owners" type="number" placeholder="e.g. 1" oninput="updateOverview()"/></div>
+          <div class="field"><label>Number of Keys</label>
+            <input id="f-keys" type="number" placeholder="e.g. 2"/></div>
+        </div>
+      </div>
+
+      <!-- Location & Source -->
+      <div class="card">
+        <div class="card-title">📍 Location &amp; Source</div>
+        <div class="form-grid">
+          <div class="field"><label>Vehicle Location</label>
+            <input id="f-location" value=""/></div>
+          <div class="field"><label>RTO</label>
+            <input id="f-rto" placeholder="e.g. TS06" oninput="updateOverview()"/></div>
+          <div class="field"><label>Source</label>
+            <input id="f-source" value=""/></div>
+          <div class="field"><label>Sub Source</label>
+            <input id="f-subsource" value=""/></div>
+          <div class="field"><label>Inspection Date</label>
+            <input id="f-inspdate" type="date" value=""/></div>
+          <div class="field"><label>Park &amp; Sale</label>
+            <select id="f-parksale"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>Number of Challans Pending</label>
+            <input id="f-challans" type="number" value=""/>
+          <div class="field"><label>Challans Pending Amount (₹)</label>
+            <input id="f-challanamt" placeholder="0"/></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: IMAGES
+    ════════════════════════ -->
+    <section class="section" id="s-images">
+      <div class="section-header">
+        <h2>Vehicle Images</h2>
+        <p>Upload photos from all angles</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📷 Exterior Photos</div>
+        <div class="image-grid">
+          <div class="image-slot" id="slot-frontside">
+            <input type="file" accept="image/*" onchange="loadImage(this,'frontside')"/>
+            <div class="placeholder">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Front Side</span>
+            </div>
+            <span class="img-label">Front Side</span>
+            <button class="remove-btn" onclick="removeImage(event,'frontside')">✕</button>
+          </div>
+
+          <div class="image-slot" id="slot-backside">
+            <input type="file" accept="image/*" onchange="loadImage(this,'backside')"/>
+            <div class="placeholder">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Back Side</span>
+            </div>
+            <span class="img-label">Back Side</span>
+            <button class="remove-btn" onclick="removeImage(event,'backside')">✕</button>
+          </div>
+
+          <div class="image-slot" id="slot-leftside">
+            <input type="file" accept="image/*" onchange="loadImage(this,'leftside')"/>
+            <div class="placeholder">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Left Side</span>
+            </div>
+            <span class="img-label">Left Side</span>
+            <button class="remove-btn" onclick="removeImage(event,'leftside')">✕</button>
+          </div>
+
+          <div class="image-slot" id="slot-rightside">
+            <input type="file" accept="image/*" onchange="loadImage(this,'rightside')"/>
+            <div class="placeholder">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Right Side</span>
+            </div>
+            <span class="img-label">Right Side</span>
+            <button class="remove-btn" onclick="removeImage(event,'rightside')">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔧 Under the Hood &amp; Interior</div>
+        <div class="image-grid">
+          <div class="image-slot" id="slot-speedometer">
+            <input type="file" accept="image/*" onchange="loadImage(this,'speedometer')"/>
+            <div class="placeholder">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Speedometer</span>
+            </div>
+            <span class="img-label">Speedometer</span>
+            <button class="remove-btn" onclick="removeImage(event,'speedometer')">✕</button>
+          </div>
+
+          <div class="image-slot" id="slot-chassis">
+            <input type="file" accept="image/*" onchange="loadImage(this,'chassis')"/>
+            <div class="placeholder">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Chassis Plate</span>
+            </div>
+            <span class="img-label">Chassis</span>
+            <button class="remove-btn" onclick="removeImage(event,'chassis')">✕</button>
+          </div>
+
+          <div class="image-slot" id="slot-extrafitment">
+            <input type="file" accept="image/*" onchange="loadImage(this,'extrafitment')"/>
+            <div class="placeholder">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Extra Fitment / Engine</span>
+            </div>
+            <span class="img-label">Extra Fitment</span>
+            <button class="remove-btn" onclick="removeImage(event,'extrafitment')">✕</button>
+          </div>
+
+          <div class="image-slot" id="slot-interiorfront">
+            <input type="file" accept="image/*" onchange="loadImage(this,'interiorfront')"/>
+            <div class="placeholder">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Interior Front</span>
+            </div>
+            <span class="img-label">Interior Front</span>
+            <button class="remove-btn" onclick="removeImage(event,'interiorfront')">✕</button>
+          </div>
+
+          <div class="image-slot" id="slot-interiorback">
+            <input type="file" accept="image/*" onchange="loadImage(this,'interiorback')"/>
+            <div class="placeholder">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Interior Back</span>
+            </div>
+            <span class="img-label">Interior Back</span>
+            <button class="remove-btn" onclick="removeImage(event,'interiorback')">✕</button>
+          </div>
+
+          <div class="image-slot" id="slot-functions">
+            <input type="file" accept="image/*" onchange="loadImage(this,'functions')"/>
+            <div class="placeholder">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Functions / Dashboard</span>
+            </div>
+            <span class="img-label">Functions</span>
+            <button class="remove-btn" onclick="removeImage(event,'functions')">✕</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: INTERIOR
+    ════════════════════════ -->
+    <section class="section" id="s-interior">
+      <div class="section-header">
+        <h2>Interior Details</h2>
+        <p>Condition of interior components</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🪑 Interior Condition</div>
+        <div id="interior-fields"></div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: MECHANICAL
+    ════════════════════════ -->
+    <section class="section" id="s-mechanical">
+      <div class="section-header">
+        <h2>Mechanical Evaluation</h2>
+        <p>Engine, brakes, suspension, electricals</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🔩 Mechanical Components</div>
+        <div id="mechanical-fields"></div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: BODY & FRAME
+    ════════════════════════ -->
+    <section class="section" id="s-bodyframe">
+      <div class="section-header">
+        <h2>Body &amp; Frame</h2>
+        <p>Panel-by-panel condition assessment</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🚗 Body Panels</div>
+        <div id="body-fields"></div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: LIGHTS
+    ════════════════════════ -->
+    <section class="section" id="s-lights">
+      <div class="section-header">
+        <h2>Lights</h2>
+        <p>Headlights and tail lights condition</p>
+      </div>
+      <div class="card">
+        <div class="card-title">💡 Lights Condition</div>
+        <div id="lights-fields"></div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: FEATURES
+    ════════════════════════ -->
+    <section class="section" id="s-features">
+      <div class="section-header">
+        <h2>Features</h2>
+        <p>Comfort, convenience and tech features</p>
+      </div>
+      <div class="card">
+        <div class="card-title">✨ Feature Availability</div>
+        <div id="features-fields"></div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: EXTERIOR
+    ════════════════════════ -->
+    <section class="section" id="s-exterior">
+      <div class="section-header">
+        <h2>Exterior Details</h2>
+        <p>Bumper, hood, windshield condition</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🚙 Exterior Components</div>
+        <div id="exterior-fields"></div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: TYRES & ACCIDENT
+    ════════════════════════ -->
+    <section class="section" id="s-tyres">
+      <div class="section-header">
+        <h2>Tyres &amp; Accident History</h2>
+        <p>Tyre conditions and accident record</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⭕ Tyre Conditions</div>
+        <div class="tyre-grid">
+          <div class="tyre-item">
+            <div class="tyre-label">Front Right Wheel</div>
+            <div class="tyre-slider-wrap">
+              <input type="range" class="tyre-slider" id="t-fr" min="0" max="100" value="80"
+                     oninput="this.nextElementSibling.textContent=this.value+'%'"/>
+              <span class="tyre-val">80%</span>
+            </div>
+          </div>
+          <div class="tyre-item">
+            <div class="tyre-label">Front Left Wheel</div>
+            <div class="tyre-slider-wrap">
+              <input type="range" class="tyre-slider" id="t-fl" min="0" max="100" value="80"
+                     oninput="this.nextElementSibling.textContent=this.value+'%'"/>
+              <span class="tyre-val">80%</span>
+            </div>
+          </div>
+          <div class="tyre-item">
+            <div class="tyre-label">Rear Right Wheel</div>
+            <div class="tyre-slider-wrap">
+              <input type="range" class="tyre-slider" id="t-rr" min="0" max="100" value="75"
+                     oninput="this.nextElementSibling.textContent=this.value+'%'"/>
+              <span class="tyre-val">75%</span>
+            </div>
+          </div>
+          <div class="tyre-item">
+            <div class="tyre-label">Rear Left Wheel</div>
+            <div class="tyre-slider-wrap">
+              <input type="range" class="tyre-slider" id="t-rl" min="0" max="100" value="75"
+                     oninput="this.nextElementSibling.textContent=this.value+'%'"/>
+              <span class="tyre-val">75%</span>
+            </div>
+          </div>
+          <div class="tyre-item">
+            <div class="tyre-label">Spare Disk Wheel</div>
+            <div class="tyre-slider-wrap">
+              <input type="range" class="tyre-slider" id="t-sd" min="0" max="100" value="100"
+                     oninput="this.nextElementSibling.textContent=this.value+'%'"/>
+              <span class="tyre-val">100%</span>
+            </div>
+          </div>
+          <div class="tyre-item">
+            <div class="tyre-label">Spare Alloy Wheel</div>
+            <div class="tyre-slider-wrap">
+              <input type="range" class="tyre-slider" id="t-sa" min="0" max="100" value="100"
+                     oninput="this.nextElementSibling.textContent=this.value+'%'"/>
+              <span class="tyre-val">100%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⚠ Accident History</div>
+        <div class="form-grid">
+          <div class="field"><label>Any Minor Accident</label>
+            <select id="f-minoracc"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>Any Major Accident</label>
+            <select id="f-majoracc"><option>No</option><option>Yes</option></select></div>
+          <div class="field full-width"><label>Accident Notes</label>
+            <textarea id="f-accnotes" placeholder="Describe any accident history..."></textarea></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: INSURANCE
+    ════════════════════════ -->
+    <section class="section" id="s-insurance">
+      <div class="section-header">
+        <h2>Insurance</h2>
+        <p>Current insurance details</p>
+      </div>
+      <div class="card">
+        <div class="card-title">🛡 Insurance Details</div>
+        <div class="form-grid">
+          <div class="field"><label>Insurance Type</label>
+            <select id="f-instype">
+              <option value="">Select...</option>
+              <option>Comprehensive</option><option>Third Party</option><option>Zero Depreciation</option>
+            </select>
+          </div>
+          <div class="field"><label>Insurance Company</label>
+            <input id="f-insco" placeholder="e.g. HDFC Ergo"/></div>
+          <div class="field"><label>Policy Number</label>
+            <input id="f-inspolicy" placeholder="Policy number"/></div>
+          <div class="field"><label>Insurance From Date</label>
+            <input id="f-insfrom" type="date"/></div>
+          <div class="field"><label>Insurance To Date</label>
+            <input id="f-insto" type="date"/></div>
+          <div class="field"><label>No Claim Bonus</label>
+            <select id="f-ncb"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>NCB %</label>
+            <input id="f-ncbpct" type="number" placeholder="e.g. 20"/></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: WARRANTY & AMC
+    ════════════════════════ -->
+    <section class="section" id="s-warranty">
+      <div class="section-header">
+        <h2>Warranty &amp; AMC</h2>
+        <p>Warranty and maintenance contract details</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 Warranty</div>
+        <div class="form-grid">
+          <div class="field"><label>Warranty Name / Type</label>
+            <input id="f-warname" placeholder="e.g. Extended Warranty"/></div>
+          <div class="field"><label>Warranty Start Date</label>
+            <input id="f-warfrom" type="date"/></div>
+          <div class="field"><label>Warranty To Date</label>
+            <input id="f-warto" type="date"/></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔧 Annual Maintenance Contract (AMC)</div>
+        <div class="form-grid">
+          <div class="field"><label>AMC</label>
+            <select id="f-amc"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>AMC Start Date</label>
+            <input id="f-amcfrom" type="date"/></div>
+          <div class="field"><label>AMC To Date</label>
+            <input id="f-amcto" type="date"/></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🚨 Road Side Assistance (RSA)</div>
+        <div class="form-grid">
+          <div class="field"><label>RSA</label>
+            <select id="f-rsa"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>RSA Start Date</label>
+            <input id="f-rsafrom" type="date"/></div>
+          <div class="field"><label>RSA To Date</label>
+            <input id="f-rsato" type="date"/></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: REGISTRATION
+    ════════════════════════ -->
+    <section class="section" id="s-registration">
+      <div class="section-header">
+        <h2>Registration Details</h2>
+        <p>Address, state, emission and other details</p>
+      </div>
+      <div class="card">
+        <div class="card-title">📝 Registration Info</div>
+        <div class="form-grid">
+          <div class="field"><label>Registration Pincode</label>
+            <input id="f-pincode" placeholder="e.g. 500032"/></div>
+          <div class="field"><label>Registration State</label>
+            <input id="f-regstate" placeholder="e.g. Telangana"/></div>
+          <div class="field"><label>Registration District</label>
+            <input id="f-regdist" placeholder="e.g. Hyderabad"/></div>
+          <div class="field"><label>Registration City</label>
+            <input id="f-regcity" placeholder="e.g. Hyderabad"/></div>
+          <div class="field full-width"><label>Registration Address</label>
+            <textarea id="f-regaddr" placeholder="Full registration address"></textarea></div>
+          <div class="field"><label>Emission Standard</label>
+            <select id="f-emission">
+              <option>BS6</option><option>BS4</option><option>BS3</option>
+            </select>
+          </div>
+          <div class="field"><label>Meter Tampered</label>
+            <select id="f-tampered"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>CNG / LPG Fitment (OEM)</label>
+            <select id="f-cngoem"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>CNG / LPG Fitment (Local)</label>
+            <select id="f-cnglocal"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>CNG / LPG Fitment In RC</label>
+            <select id="f-cnginrc"><option>No</option><option>Yes</option></select></div>
+          <div class="field"><label>RC Original Available</label>
+            <select id="f-rcavail"><option>Yes</option><option>No</option></select></div>
+          <div class="field"><label>Last Service KM Reading</label>
+            <input id="f-lastserv" type="number" placeholder="e.g. 70000"/></div>
+          <div class="field"><label>Last Service Date</label>
+            <input id="f-lastservdate" type="date"/></div>
+          <div class="field"><label>Vehicle Condition</label>
+            <select id="f-condition">
+              <option value="">Select...</option>
+              <option>Excellent</option><option>Good</option>
+              <option>Average</option><option>Poor</option>
+            </select>
+          </div>
+          <div class="field"><label>Exchange Vehicle Category</label>
+            <input id="f-exchcat" placeholder="Category"/></div>
+          <div class="field"><label>Exchange Bonus Amount (₹)</label>
+            <input id="f-exchbonus" type="number" placeholder="0"/></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: RC DETAILS
+         ⚠ FOR REFERENCE ONLY — NOT INCLUDED IN PDF
+    ════════════════════════ -->
+    <section class="section" id="s-rcdetails">
+      <div class="section-header">
+        <h2>RC Details</h2>
+        <p>For internal reference only — this section will <strong style="color:var(--rc-accent)">NOT</strong> appear in the generated PDF</p>
+      </div>
+
+      <!-- Warning Banner -->
+      <div class="rc-warning-banner">
+        <span class="rc-warning-icon">⚠</span>
+        <div>
+          <div class="rc-warning-title">Reference Only — Not Printed in PDF</div>
+          <div class="rc-warning-sub">Details entered here are for internal verification purposes only. They will be saved in your draft but will never appear in the generated brochure PDF.</div>
+        </div>
+      </div>
+
+      <!-- Owner Details -->
+      <div class="card rc-card">
+        <div class="card-title" style="color:var(--rc-accent);">👤 Owner Details (as per RC)</div>
+        <div class="form-grid">
+          <div class="field"><label>Owner Full Name</label>
+            <input id="rc-ownername" placeholder="Name as on RC"/></div>
+          <div class="field"><label>Owner Father's Name</label>
+            <input id="rc-fathername" placeholder="Father's name"/></div>
+          <div class="field"><label>Owner Mobile Number</label>
+            <input id="rc-mobile" type="tel" placeholder="10-digit mobile"/></div>
+          <div class="field"><label>Owner Aadhar Number</label>
+            <input id="rc-aadhar" placeholder="XXXX XXXX XXXX" maxlength="14"/></div>
+          <div class="field"><label>Owner PAN Number</label>
+            <input id="rc-pan" placeholder="ABCDE1234F" maxlength="10"
+                   style="text-transform:uppercase"/></div>
+          <div class="field"><label>Owner Date of Birth</label>
+            <input id="rc-dob" type="date"/></div>
+          <div class="field full-width"><label>Owner Address (as per RC)</label>
+            <textarea id="rc-address" placeholder="Full address as printed on RC"></textarea></div>
+        </div>
+      </div>
+
+      <!-- RC Document Details -->
+      <div class="card rc-card">
+        <div class="card-title" style="color:var(--rc-accent);">📄 RC Document Details</div>
+        <div class="form-grid">
+          <div class="field"><label>RC Book Number</label>
+            <input id="rc-bookno" placeholder="RC book number"/></div>
+          <div class="field"><label>RC Issue Date</label>
+            <input id="rc-issuedate" type="date"/></div>
+          <div class="field"><label>RC Issuing RTO Office</label>
+            <input id="rc-rtooffice" placeholder="e.g. Hyderabad Central RTO"/></div>
+          <div class="field"><label>Hypothecation (Loan)</label>
+            <select id="rc-hypo">
+              <option>No</option>
+              <option>Yes</option>
+            </select>
+          </div>
+          <div class="field"><label>Hypothecation Bank / Financer</label>
+            <input id="rc-hypobank" placeholder="Bank or NBFC name if loan exists"/></div>
+          <div class="field"><label>NOC Received</label>
+            <select id="rc-noc">
+              <option>No</option>
+              <option>Yes</option>
+              <option>Not Applicable</option>
+            </select>
+          </div>
+          <div class="field"><label>RC Original Available</label>
+            <select id="rc-original">
+              <option>Yes</option>
+              <option>No</option>
+              <option>Duplicate RC</option>
+            </select>
+          </div>
+          <div class="field"><label>Form 35 Available (NOC)</label>
+            <select id="rc-form35">
+              <option>No</option>
+              <option>Yes</option>
+              <option>Not Applicable</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vehicle Verification -->
+      <div class="card rc-card">
+        <div class="card-title" style="color:var(--rc-accent);">🔍 Vehicle Verification</div>
+        <div class="form-grid">
+          <div class="field"><label>Chassis Number Match (RC vs Physical)</label>
+            <select id="rc-chassismatch">
+              <option>Matched</option>
+              <option>Not Matched</option>
+              <option>Not Verified</option>
+            </select>
+          </div>
+          <div class="field"><label>Engine Number Match (RC vs Physical)</label>
+            <select id="rc-enginematch">
+              <option>Matched</option>
+              <option>Not Matched</option>
+              <option>Not Verified</option>
+            </select>
+          </div>
+          <div class="field"><label>Color Match (RC vs Physical)</label>
+            <select id="rc-colormatch">
+              <option>Matched</option>
+              <option>Not Matched</option>
+              <option>Not Verified</option>
+            </select>
+          </div>
+          <div class="field"><label>RC Blacklist Status</label>
+            <select id="rc-blacklist">
+              <option>Clear</option>
+              <option>Blacklisted</option>
+              <option>Not Checked</option>
+            </select>
+          </div>
+          <div class="field"><label>Theft Record Check</label>
+            <select id="rc-theft">
+              <option>Clear</option>
+              <option>Record Found</option>
+              <option>Not Checked</option>
+            </select>
+          </div>
+          <div class="field"><label>Fitness Certificate Valid Till</label>
+            <input id="rc-fitness" type="date"/></div>
+          <div class="field"><label>PUC Certificate Valid Till</label>
+            <input id="rc-puc" type="date"/></div>
+          <div class="field"><label>Road Tax Paid Up To</label>
+            <input id="rc-roadtax" type="date"/></div>
+        </div>
+      </div>
+
+      <!-- Internal Notes -->
+      <div class="card rc-card">
+        <div class="card-title" style="color:var(--rc-accent);">🗒 Internal Notes</div>
+        <div class="form-grid single">
+          <div class="field"><label>Verified By (Staff Name)</label>
+            <input id="rc-verifiedby" placeholder="Name of staff who verified RC"/></div>
+          <div class="field"><label>Verification Date</label>
+            <input id="rc-verifydate" type="date"/></div>
+          <div class="field"><label>Internal Remarks</label>
+            <textarea id="rc-remarks" placeholder="Any internal notes, discrepancies, or observations about the RC..." style="min-height:100px;"></textarea></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: ANALYTICS
+    ════════════════════════ -->
+    <section class="section" id="s-analytics">
+      <div class="section-header">
+        <h2>Analytics Dashboard</h2>
+        <p>Summary of all saved vehicle records from draft history</p>
+      </div>
+
+      <!-- Staff notice -->
+      <div id="staff-notice" class="staff-notice-bar" style="display:none;">
+        <span>👤</span>
+        <span>You are viewing <strong>your own records only</strong>. Admin can see all records.</span>
+      </div>
+
+      <!-- ── Month / Year Filter ── -->
+      <div class="filter-bar">
+        <span class="filter-label">📅 Filter by Period</span>
+        <select id="analytics-month" class="filter-select" onchange="renderAnalytics()">
+          <option value="0">All Months</option>
+          <option value="1">January</option><option value="2">February</option>
+          <option value="3">March</option><option value="4">April</option>
+          <option value="5">May</option><option value="6">June</option>
+          <option value="7">July</option><option value="8">August</option>
+          <option value="9">September</option><option value="10">October</option>
+          <option value="11">November</option><option value="12">December</option>
+        </select>
+        <select id="analytics-year" class="filter-select" onchange="renderAnalytics()">
+          <option value="0">All Years</option>
+        </select>
+        <button class="btn btn-ghost" style="padding:6px 14px;font-size:12px;" onclick="resetAnalyticsFilter()">✕ Clear</button>
+        <span class="filter-result-badge" id="analytics-filter-badge"></span>
+      </div>
+
+      <!-- KPI Cards Row -->
+      <div class="kpi-row" id="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-icon">🚗</div>
+          <div class="kpi-value" id="kpi-total">—</div>
+          <div class="kpi-label">Total Records</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">⛽</div>
+          <div class="kpi-value" id="kpi-diesel">—</div>
+          <div class="kpi-label">Diesel Vehicles</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">🔥</div>
+          <div class="kpi-value" id="kpi-petrol">—</div>
+          <div class="kpi-label">Petrol Vehicles</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">📏</div>
+          <div class="kpi-value" id="kpi-avgkm">—</div>
+          <div class="kpi-label">Avg KM Driven</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-value" id="kpi-good">—</div>
+          <div class="kpi-label">Good Condition</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon">⚠</div>
+          <div class="kpi-value" id="kpi-accident">—</div>
+          <div class="kpi-label">Accident History</div>
+        </div>
+      </div>
+
+      <!-- Charts Row 1 -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Fuel Type Distribution</div>
+          <div class="chart-wrap"><canvas id="chart-fuel"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Transmission Type</div>
+          <div class="chart-wrap"><canvas id="chart-trans"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Vehicle Condition</div>
+          <div class="chart-wrap"><canvas id="chart-condition"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Charts Row 2 -->
+      <div class="charts-row">
+        <div class="chart-card wide">
+          <div class="chart-title">KM Driven per Vehicle</div>
+          <div class="chart-wrap tall"><canvas id="chart-km"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Body Type Breakdown</div>
+          <div class="chart-wrap"><canvas id="chart-body"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Charts Row 3 -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-title">Mechanical Condition Summary</div>
+          <div class="chart-wrap"><canvas id="chart-mechanical"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Tyre Condition Average</div>
+          <div class="chart-wrap"><canvas id="chart-tyre"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Accident History</div>
+          <div class="chart-wrap"><canvas id="chart-accident"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Charts Row 4 — Monthly Trend -->
+      <div class="charts-row" style="grid-template-columns:1fr;">
+        <div class="chart-card">
+          <div class="chart-title">📈 Monthly Evaluation Trend</div>
+          <div class="chart-wrap tall"><canvas id="chart-monthly"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Vehicle Records Table -->
+      <div class="card" style="margin-top:8px;">
+        <div class="card-title">📋 All Saved Vehicle Records</div>
+        <div style="overflow-x:auto;">
+          <table class="records-table" id="records-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Vehicle</th>
+                <th>Reg. No</th>
+                <th>KM</th>
+                <th>Fuel</th>
+                <th>Transmission</th>
+                <th>Condition</th>
+                <th>Accident</th>
+                <th>Inspection Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="records-tbody">
+              <tr><td colspan="10" style="text-align:center;color:var(--muted);padding:24px;">
+                No records saved yet. Fill the form and click "Save to Records" to add.
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Save to Records button -->
+      <div style="margin-top:16px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="saveToRecords(false)">🔄 Sync Current Form to Analytics</button>
+        <button class="btn btn-ghost" id="btn-clear-records" onclick="clearAllRecords()">🗑 Clear All Records</button>
+        <span style="font-size:12px; color:var(--muted);">✨ Analytics auto-updates every time you Save Draft</span>
+      </div>
+
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: PERFORMANCE
+    ════════════════════════ -->
+    <section class="section" id="s-performance">
+      <div class="section-header">
+        <h2>User Performance</h2>
+        <p>Track evaluations, targets and team leaderboard</p>
+      </div>
+
+      <!-- Staff notice -->
+      <div class="staff-only-notice" style="display:none;">
+        <span>👤</span>
+        <span>Showing <strong>your own performance</strong> only. Admin can see all users.</span>
+      </div>
+
+      <!-- ── Month / Year Filter ── -->
+      <div class="filter-bar">
+        <span class="filter-label">📅 Filter by Period</span>
+        <select id="perf-month" class="filter-select" onchange="renderUserPerformance()">
+          <option value="0">All Months</option>
+          <option value="1">January</option><option value="2">February</option>
+          <option value="3">March</option><option value="4">April</option>
+          <option value="5">May</option><option value="6">June</option>
+          <option value="7">July</option><option value="8">August</option>
+          <option value="9">September</option><option value="10">October</option>
+          <option value="11">November</option><option value="12">December</option>
+        </select>
+        <select id="perf-year" class="filter-select" onchange="renderUserPerformance()">
+          <option value="0">All Years</option>
+        </select>
+        <button class="btn btn-ghost" style="padding:6px 14px;font-size:12px;" onclick="resetPerfFilter()">✕ Clear</button>
+        <span class="filter-result-badge" id="perf-filter-badge"></span>
+      </div>
+
+      <!-- Leaderboard table -->
+      <div class="card">
+        <div class="card-title" style="color:#f59e0b;">🏆 Team Leaderboard</div>
+        <div style="overflow-x:auto;">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Total</th>
+                <th id="perf-th-month">Month Filter</th>
+                <th>This Month (vs Target)</th>
+                <th>This Year (vs Target)</th>
+                <th>Target Progress</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="perf-leaderboard-tbody">
+              <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:24px;">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <div class="chart-card wide">
+          <div class="chart-title">👥 Team Comparison — Total vs This Month</div>
+          <div class="chart-wrap tall"><canvas id="chart-user-comparison"></canvas></div>
+        </div>
+        <div class="chart-card" id="target-actual-card">
+          <div class="chart-title">🎯 Monthly Target vs Actual</div>
+          <div class="chart-wrap tall"><canvas id="chart-target-actual"></canvas></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ════════════════════════
+         MODAL: SET TARGET
+    ════════════════════════ -->
+    <div id="target-modal" class="modal-overlay" style="display:none;">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title" id="modal-target-title">🎯 Set Target</div>
+          <button class="modal-close" onclick="closeTargetModal()">✕</button>
+        </div>
+        <input type="hidden" id="modal-target-userid"/>
+        <div class="form-grid" style="margin-top:16px;">
+          <div class="field">
+            <label>Monthly Target (Evaluations)</label>
+            <input id="modal-target-monthly" type="number" min="0" placeholder="e.g. 20"/>
+          </div>
+          <div class="field">
+            <label>Yearly Target (Evaluations)</label>
+            <input id="modal-target-yearly" type="number" min="0" placeholder="e.g. 200"/>
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:10px;">
+          <button class="btn btn-primary" onclick="saveTarget()">💾 Save Target</button>
+          <button class="btn btn-ghost"   onclick="closeTargetModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════
+         MODAL: USER DRILLDOWN
+    ════════════════════════ -->
+    <div id="drilldown-modal" class="modal-overlay" style="display:none;">
+      <div class="modal-box modal-box-wide">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title" id="drilldown-name">User Name</div>
+            <span class="role-badge role-staff" id="drilldown-role">STAFF</span>
+          </div>
+          <button class="modal-close" onclick="closeUserDrilldown()">✕</button>
+        </div>
+
+        <!-- Mini KPIs -->
+        <div class="dd-kpi-row">
+          <div class="dd-kpi">
+            <div class="dd-kpi-val" id="drilldown-total">0</div>
+            <div class="dd-kpi-label">Total Evaluations</div>
+          </div>
+          <div class="dd-kpi">
+            <div class="dd-kpi-val" id="drilldown-month">0</div>
+            <div class="dd-kpi-label">This Month</div>
+          </div>
+          <div class="dd-kpi">
+            <div class="dd-kpi-val" id="drilldown-year">0</div>
+            <div class="dd-kpi-label">This Year</div>
+          </div>
+        </div>
+
+        <!-- Mini charts -->
+        <div class="dd-charts-row">
+          <div class="chart-card" style="flex:1;">
+            <div class="chart-title">Fuel Mix</div>
+            <div style="height:150px;"><canvas id="dd-chart-fuel"></canvas></div>
+          </div>
+          <div class="chart-card" style="flex:2;">
+            <div class="chart-title">Monthly Trend</div>
+            <div style="height:150px;"><canvas id="dd-chart-trend"></canvas></div>
+          </div>
+          <div class="chart-card" style="flex:1;">
+            <div class="chart-title">Condition Mix</div>
+            <div style="height:150px;"><canvas id="dd-chart-condition"></canvas></div>
+          </div>
+        </div>
+
+        <!-- Evaluation list -->
+        <div class="card" style="margin-top:16px;">
+          <div class="card-title">📋 All Evaluations</div>
+          <div style="overflow-x:auto;max-height:260px;">
+            <table class="records-table">
+              <thead>
+                <tr><th>#</th><th>Vehicle</th><th>Reg No.</th><th>Condition</th><th>Inspection Date</th><th>Saved On</th></tr>
+              </thead>
+              <tbody id="dd-eval-list"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ════════════════════════
+         SECTION: SAVED PDFs
+    ════════════════════════ -->
+    <section class="section" id="s-savedpdfs">
+      <div class="section-header">
+        <h2>Saved PDFs</h2>
+        <p>All generated PDF reports — stored in this browser</p>
+      </div>
+
+      <!-- Staff notice -->
+      <div id="staff-notice" class="staff-notice-bar" style="display:none;">
+        <span>👤</span>
+        <span>You are viewing <strong>your own records only</strong>. Admin can see all records.</span>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📁 PDF Records</div>
+        <div style="overflow-x:auto;">
+          <table class="records-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Vehicle</th>
+                <th>Saved By</th>
+                <th>Date &amp; Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="pdfs-tbody">
+              <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px;">
+                No PDFs saved yet.
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════════════
+         SECTION: USER MANAGEMENT
+    ════════════════════════ -->
+    <section class="section" id="s-users">
+      <div class="section-header">
+        <h2>User Management</h2>
+        <p>Admin only — add, delete and manage user access</p>
+      </div>
+
+      <!-- ── CHANGE MY PASSWORD (visible to all logged-in users) ── -->
+      <div class="card" style="border-color: rgba(232,51,58,0.3); background: #130a0b;">
+        <div class="card-title" style="color:var(--accent);">🔑 Change My Password</div>
+        <div class="form-grid">
+          <div class="field">
+            <label>Current Password</label>
+            <input id="cp-current" type="password" placeholder="Enter current password"/>
+          </div>
+          <div class="field">
+            <label>New Password</label>
+            <input id="cp-new" type="password" placeholder="Enter new password (min 4 chars)"/>
+          </div>
+          <div class="field">
+            <label>Confirm New Password</label>
+            <input id="cp-confirm" type="password" placeholder="Re-enter new password"/>
+          </div>
+        </div>
+        <div id="cp-error"   style="color:var(--accent);font-size:12px;margin-top:10px;"></div>
+        <div id="cp-success" style="color:#22c55e;font-size:12px;margin-top:10px;display:none;">✓ Password changed successfully!</div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-primary" onclick="changeMyPassword()">🔑 Update Password</button>
+        </div>
+      </div>
+
+      <!-- Add new user — Admin only -->
+      <div class="card admin-only-card">
+        <div class="card-title" style="color:#a855f7;">➕ Add New User</div>
+        <div class="form-grid">
+          <div class="field"><label>Full Name</label>
+            <input id="nu-name"     placeholder="e.g. John Smith"
+                   autocomplete="off"/></div>
+          <div class="field"><label>Username (used to login)</label>
+            <input id="nu-username" placeholder="e.g. john_smith"
+                   autocomplete="off" style="text-transform:lowercase"/></div>
+          <div class="field"><label>Password</label>
+            <div style="position:relative;">
+              <input id="nu-password" type="text"
+                     placeholder="Set a password (min 4 chars)"
+                     autocomplete="new-password"
+                     style="padding-right:40px;font-family:'DM Mono',monospace;letter-spacing:1px;"/>
+              <button type="button" onclick="toggleNewUserPw()"
+                style="position:absolute;right:8px;top:50%;transform:translateY(-50%);
+                       background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;"
+                title="Show/hide password" id="nu-pw-eye">👁</button>
+            </div>
+          </div>
+          <div class="field"><label>Role</label>
+            <select id="nu-role">
+              <option value="staff">Staff</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+        <div id="nu-error" style="color:var(--accent);font-size:12px;margin-top:10px;min-height:18px;"></div>
+        <div style="margin-top:14px;display:flex;gap:10px;align-items:center;">
+          <button class="btn btn-primary" onclick="addUser()">➕ Add User</button>
+          <span style="font-size:11px;color:var(--muted);">Password is shown in plain text so you can verify it before saving.</span>
+        </div>
+      </div>
+
+      <!-- Role legend — Admin only -->
+      <div class="card admin-only-card">
+        <div class="card-title" style="color:#a855f7;">🔐 Role Permissions</div>
+        <div style="overflow-x:auto;">
+          <table class="records-table">
+            <thead>
+              <tr><th>Permission</th><th>Admin</th><th>Staff</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Fill &amp; Edit Form</td>       <td>✅</td><td>✅</td></tr>
+              <tr><td>Generate &amp; Save PDF</td>    <td>✅</td><td>✅</td></tr>
+              <tr><td>Save to Records</td>            <td>✅</td><td>✅</td></tr>
+              <tr><td>View Analytics</td>             <td>✅ All records</td><td>✅ Own only</td></tr>
+              <tr><td>View Saved PDFs</td>            <td>✅ All PDFs</td><td>✅ Own only</td></tr>
+              <tr><td>Delete Records / PDFs</td>      <td>✅</td><td>❌</td></tr>
+              <tr><td>Manage Users</td>               <td>✅</td><td>❌</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Users list — Admin only -->
+      <div class="card admin-only-card">
+        <div class="card-title" style="color:#a855f7;">👥 All Users</div>
+        <div style="overflow-x:auto;">
+          <table class="records-table">
+            <thead>
+              <tr><th>#</th><th>Name</th><th>Username</th><th>Role</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div><!-- /.layout -->
+</div><!-- /#app-root -->
+
+<!-- Toast notification -->
+<div id="toast"></div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<!-- App JavaScript -->
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script src="analytics.js"></script>
+
+</body>
+</html>

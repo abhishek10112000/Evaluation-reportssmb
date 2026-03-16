@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Head -->
+  <circle cx="24" cy="15" r="8"/>
+  <!-- Cap brim -->
+  <path d="M14 14 Q24 7 34 14"/>
+  <line x1="12" y1="14" x2="36" y2="14"/>
+  <!-- Body -->
+  <path d="M10 42 Q10 30 24 30 Q38 30 38 42"/>
+</svg>
