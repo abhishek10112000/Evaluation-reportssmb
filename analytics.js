@@ -278,6 +278,7 @@ function saveToRecords(silent) {
     km:Number(km), fuel:fuel, trans:trans, color:color,
     bodytype:bodytype, condition:condition, inspdate:inspdate,
     makeyear:makeyear, owners:Number(owners)||0,
+    location: document.getElementById('f-location') ? document.getElementById('f-location').value : '',
     accident:  minoracc==='Yes' || majoracc==='Yes',
     tyreAvg:tyreAvg, mechGood:mechGood,
     mechTotal: typeof mechanicalItems!=='undefined' ? mechanicalItems.length : 20,
@@ -744,7 +745,6 @@ window.addEventListener('DOMContentLoaded', function(){
 
 function getVehicleListRecords() {
   var all = getAllRecords();
-  /* Staff sees own only, admin sees all */
   if (typeof can === 'function' && !can('viewAll')) {
     var u = typeof currentUser === 'function' ? currentUser() : null;
     if (u) return all.filter(function(r){ return r.savedById === u.id; });
@@ -753,93 +753,93 @@ function getVehicleListRecords() {
 }
 
 function clearVLFilters() {
-  ['vl-search','vl-fuel','vl-condition','vl-month'].forEach(function(id){
+  ['vl-search','vl-status','vl-fuel','vl-month'].forEach(function(id){
     var el = document.getElementById(id);
     if (el) el.value = '';
   });
   renderVehicleList();
 }
 
+function goToNewEvaluation() {
+  var overviewNav = document.querySelector('.nav-item[onclick*="\'overview\'"]');
+  if (!overviewNav) overviewNav = document.querySelector('.nav-item');
+  if (typeof showSection === 'function') showSection('overview', overviewNav);
+}
+
 function renderVehicleList() {
-  var grid  = document.getElementById('vl-grid');
-  if (!grid) return;
+  var tbody = document.getElementById('vl-tbody');
+  if (!tbody) return;
 
-  var search    = (document.getElementById('vl-search')    ? document.getElementById('vl-search').value.toLowerCase()    : '');
-  var fuel      = (document.getElementById('vl-fuel')      ? document.getElementById('vl-fuel').value                     : '');
-  var condition = (document.getElementById('vl-condition') ? document.getElementById('vl-condition').value                : '');
-  var month     = (document.getElementById('vl-month')     ? Number(document.getElementById('vl-month').value)            : 0);
+  var search = document.getElementById('vl-search')  ? document.getElementById('vl-search').value.toLowerCase()  : '';
+  var status = document.getElementById('vl-status')  ? document.getElementById('vl-status').value.toLowerCase()  : '';
+  var fuel   = document.getElementById('vl-fuel')    ? document.getElementById('vl-fuel').value.toLowerCase()    : '';
+  var month  = document.getElementById('vl-month')   ? Number(document.getElementById('vl-month').value)          : 0;
 
-  var records = getVehicleListRecords();
+  var records  = getVehicleListRecords();
 
-  /* Apply filters */
+  /* Filter */
   var filtered = records.filter(function(r) {
-    var text = ((r.brand||'') + ' ' + (r.model||'') + ' ' + (r.variant||'') + ' ' +
-                (r.regno||'') + ' ' + (r.color||'')).toLowerCase();
-    if (search    && text.indexOf(search) === -1)           return false;
-    if (fuel      && (r.fuel||'').toLowerCase() !== fuel.toLowerCase()) return false;
-    if (condition && (r.condition||'').toLowerCase() !== condition.toLowerCase()) return false;
-    if (month     && r.month !== month)                     return false;
+    var text = ((r.brand||'')+' '+(r.model||'')+' '+(r.variant||'')+' '+(r.regno||'')+' '+(r.location||'')).toLowerCase();
+    if (search && text.indexOf(search) === -1)                                return false;
+    if (fuel   && (r.fuel||'').toLowerCase() !== fuel)                        return false;
+    if (month  && r.month !== month)                                          return false;
+    /* Status: completed = has condition filled, draft = no condition */
+    if (status === 'completed' && !r.condition)                               return false;
+    if (status === 'draft'     &&  r.condition)                               return false;
     return true;
   });
 
-  /* Update stats strip */
-  function setEl(id, v){ var el=document.getElementById(id); if(el) el.textContent=v; }
-  setEl('vls-total',    filtered.length);
-  setEl('vls-diesel',   filtered.filter(function(r){ return (r.fuel||'').toLowerCase()==='diesel'; }).length);
-  setEl('vls-petrol',   filtered.filter(function(r){ return (r.fuel||'').toLowerCase()==='petrol'; }).length);
-  setEl('vls-accident', filtered.filter(function(r){ return r.accident; }).length);
-  setEl('vls-good',     filtered.filter(function(r){ return ['good','excellent'].includes((r.condition||'').toLowerCase()); }).length);
+  /* Sort newest first */
+  filtered.sort(function(a,b){ return (b.savedAt||0)-(a.savedAt||0); });
+
+  /* Count label */
+  var countEl = document.getElementById('vl-count');
+  if (countEl) countEl.textContent = 'Showing ' + filtered.length + ' of ' + records.length + ' record' + (records.length !== 1 ? 's' : '');
 
   if (!filtered.length) {
-    grid.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px;grid-column:1/-1;">'
-      + (records.length ? 'No results match your filters.' : 'No evaluations yet. Save a draft to add one.')
-      + '</div>';
+    tbody.innerHTML = '<tr><td colspan="7" class="vl-empty">'
+      + (records.length ? 'No records match your filters.' : 'No evaluations yet. Save a draft to add one.')
+      + '</td></tr>';
     return;
   }
 
-  /* Sort newest first */
-  filtered.sort(function(a,b){ return (b.savedAt||0) - (a.savedAt||0); });
+  var isAdmin = typeof can === 'function' && can('delete');
 
-  var condColorMap = { excellent:'#22c55e', good:'#4ade80', average:'#f59e0b', poor:'#ef4444' };
+  tbody.innerHTML = filtered.map(function(r) {
+    var isCompleted = !!(r.condition);
+    var statusHtml  = isCompleted
+      ? '<span class="vl-status-badge vl-status-completed">Completed</span>'
+      : '<span class="vl-status-badge vl-status-draft">Draft</span>';
 
-  grid.innerHTML = filtered.map(function(r) {
-    var condKey  = (r.condition||'').toLowerCase();
-    var condCol  = condColorMap[condKey] || '#888';
-    var accBadge = r.accident
-      ? '<span class="vl-badge vl-badge-red">⚠ Accident</span>'
-      : '<span class="vl-badge vl-badge-green">✓ Clean</span>';
-    var condBadge = r.condition
-      ? '<span class="vl-badge" style="color:'+condCol+';border-color:'+condCol+'40;background:'+condCol+'15">'+r.condition+'</span>'
+    var savedDate = r.savedAt ? new Date(r.savedAt).toLocaleDateString('en-IN',{day:'numeric',month:'numeric',year:'numeric'}) : '—';
+    var km        = r.km ? Number(r.km).toLocaleString() + ' KM' : '—';
+    var location  = r.location || r.vehicleLocation || '—';
+
+    var delBtn = isAdmin
+      ? '<button class="vl-action-btn vl-action-del" onclick="deleteVehicleRecord('+r.id+',event)" title="Delete">🗑</button>'
       : '';
-    var savedDate = r.savedAt ? new Date(r.savedAt).toLocaleDateString('en-IN') : '—';
 
-    return '<div class="vl-card" onclick="loadVehicleRecord('+r.id+')">'
-      + '<div class="vl-card-header">'
-      + '  <div>'
-      + '    <div class="vl-card-title">' + (r.brand||'') + ' ' + (r.model||'') + '</div>'
-      + '    <div class="vl-card-subtitle">' + (r.variant||'') + '</div>'
-      + '  </div>'
-      + '  <div class="vl-card-regno">' + (r.regno||'—') + '</div>'
-      + '</div>'
-      + '<div class="vl-card-body">'
-      + '  <div class="vl-card-row"><span>🎨</span><span>' + (r.color||'—') + '</span></div>'
-      + '  <div class="vl-card-row"><span>⛽</span><span>' + (r.fuel||'—') + '</span></div>'
-      + '  <div class="vl-card-row"><span>⚙</span><span>' + (r.trans||'—') + '</span></div>'
-      + '  <div class="vl-card-row"><span>📏</span><span>' + (r.km ? Number(r.km).toLocaleString()+' km' : '—') + '</span></div>'
-      + '</div>'
-      + '<div class="vl-card-footer">'
-      + '  <div style="display:flex;gap:6px;flex-wrap:wrap;">' + condBadge + accBadge + '</div>'
-      + '  <div class="vl-card-meta">'
-      + '    <span>' + (r.savedBy||'—') + '</span>'
-      + '    <span>·</span>'
-      + '    <span>' + savedDate + '</span>'
-      + '  </div>'
-      + '</div>'
-      + '</div>';
+    return '<tr class="vl-row">'
+      + '<td class="vl-col-vehicle">'
+      + '  <div class="vl-vehicle-name">' + (r.brand||'') + ' ' + (r.model||'') + '</div>'
+      + '  <div class="vl-vehicle-variant">' + (r.variant||'') + '</div>'
+      + '</td>'
+      + '<td class="vl-col-mono">' + (r.regno||'—') + '</td>'
+      + '<td>' + km + '</td>'
+      + '<td>' + location + '</td>'
+      + '<td>' + savedDate + '</td>'
+      + '<td>' + statusHtml + '</td>'
+      + '<td class="vl-col-actions">'
+      + '  <button class="vl-action-btn vl-action-edit" onclick="loadVehicleRecord('+r.id+',event)" title="Edit / Load">✏</button>'
+      + '  <button class="vl-action-btn vl-action-dl"  onclick="downloadVehicleRecord('+r.id+',event)" title="Download PDF">⬇</button>'
+      + delBtn
+      + '</td>'
+      + '</tr>';
   }).join('');
 }
 
-function loadVehicleRecord(id) {
+function loadVehicleRecord(id, evt) {
+  if (evt) evt.stopPropagation();
   var records = getAllRecords();
   var r = null;
   for (var i = 0; i < records.length; i++) {
@@ -847,13 +847,13 @@ function loadVehicleRecord(id) {
   }
   if (!r) return;
 
-  /* Load into form */
   var map = {
     'f-brand':r.brand, 'f-model':r.model, 'f-variant':r.variant,
     'f-regno':r.regno, 'f-km':r.km, 'f-fuel':r.fuel,
     'f-trans':r.trans, 'f-color':r.color, 'f-bodytype':r.bodytype,
     'f-condition':r.condition, 'f-inspdate':r.inspdate,
-    'f-makeyear':r.makeyear, 'f-owners':r.owners
+    'f-makeyear':r.makeyear, 'f-owners':r.owners,
+    'f-location':r.location
   };
   Object.keys(map).forEach(function(fid) {
     var el = document.getElementById(fid);
@@ -861,12 +861,28 @@ function loadVehicleRecord(id) {
   });
 
   if (typeof updateOverview === 'function') updateOverview();
+  if (typeof updateActionBar === 'function') updateActionBar(true);
 
-  /* Navigate to overview section */
-  var overviewNav = document.querySelector('.nav-item[onclick*="overview"]');
-  if (typeof showSection === 'function' && overviewNav) {
-    showSection('overview', overviewNav);
-  }
-
+  var overviewNav = document.querySelector('.nav-item[onclick*="\'overview\'"]');
+  if (!overviewNav) overviewNav = document.querySelector('.nav-item');
+  if (typeof showSection === 'function') showSection('overview', overviewNav);
   showToast('Record loaded into form ✓');
+}
+
+function downloadVehicleRecord(id, evt) {
+  if (evt) evt.stopPropagation();
+  /* Load the record first, then trigger PDF */
+  loadVehicleRecord(id);
+  setTimeout(function() {
+    if (typeof generatePDF === 'function') generatePDF();
+  }, 300);
+}
+
+function deleteVehicleRecord(id, evt) {
+  if (evt) evt.stopPropagation();
+  if (!confirm('Delete this evaluation record?')) return;
+  var all = getAllRecords().filter(function(r){ return r.id !== id; });
+  saveAllRecords(all);
+  renderVehicleList();
+  showToast('Record deleted');
 }

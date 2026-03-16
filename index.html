@@ -215,9 +215,7 @@
           <h2>Vehicle Evaluations</h2>
           <p>All saved evaluation records</p>
         </div>
-        <button class="btn btn-primary" onclick="showSection('overview', document.querySelector('.nav-item.active')); window.scrollTo(0,0);">
-          ＋ New Evaluation
-        </button>
+        <button class="btn btn-primary" onclick="goToNewEvaluation()">＋ New Evaluation</button>
       </div>
 
       <!-- Staff notice -->
@@ -230,18 +228,19 @@
       <div class="vl-filter-bar">
         <div class="vl-search-wrap">
           <span class="vl-search-icon">🔍</span>
-          <input id="vl-search" type="text" placeholder="Search by make, model, reg no, colour..."
+          <input id="vl-search" type="text"
+                 placeholder="Search by make, model, registration..."
                  oninput="renderVehicleList()" class="vl-search"/>
         </div>
+        <select id="vl-status" class="filter-select" onchange="renderVehicleList()">
+          <option value="">All Status</option>
+          <option value="completed">Completed</option>
+          <option value="draft">Draft</option>
+        </select>
         <select id="vl-fuel" class="filter-select" onchange="renderVehicleList()">
           <option value="">All Fuel Types</option>
           <option>Diesel</option><option>Petrol</option>
           <option>CNG</option><option>Electric</option><option>Hybrid</option>
-        </select>
-        <select id="vl-condition" class="filter-select" onchange="renderVehicleList()">
-          <option value="">All Conditions</option>
-          <option>Excellent</option><option>Good</option>
-          <option>Average</option><option>Poor</option>
         </select>
         <select id="vl-month" class="filter-select" onchange="renderVehicleList()">
           <option value="">All Months</option>
@@ -255,21 +254,30 @@
         <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;" onclick="clearVLFilters()">✕ Clear</button>
       </div>
 
-      <!-- Stats strip -->
-      <div class="vl-stats-strip" id="vl-stats-strip">
-        <div class="vl-stat"><span id="vls-total">0</span><label>Total</label></div>
-        <div class="vl-stat"><span id="vls-diesel">0</span><label>Diesel</label></div>
-        <div class="vl-stat"><span id="vls-petrol">0</span><label>Petrol</label></div>
-        <div class="vl-stat"><span id="vls-accident">0</span><label>Accident</label></div>
-        <div class="vl-stat"><span id="vls-good">0</span><label>Good Cond.</label></div>
-      </div>
-
-      <!-- Vehicle cards grid -->
-      <div class="vl-grid" id="vl-grid">
-        <div style="text-align:center;color:var(--muted);padding:40px;grid-column:1/-1;">
-          No evaluations yet. Save a draft to add one.
+      <!-- Table -->
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="overflow-x:auto;">
+          <table class="vl-table">
+            <thead>
+              <tr>
+                <th>VEHICLE</th>
+                <th>REGISTRATION</th>
+                <th>MILEAGE</th>
+                <th>LOCATION</th>
+                <th>DATE ADDED</th>
+                <th>STATUS</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="vl-tbody">
+              <tr><td colspan="7" class="vl-empty">No evaluations yet. Save a draft to add one.</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
+
+      <!-- Record count -->
+      <div style="margin-top:10px;font-size:12px;color:var(--muted);" id="vl-count"></div>
     </section>
 
     <!-- ════════════════════════
