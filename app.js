@@ -198,14 +198,98 @@ function closeSidebar() {
 /* ══════════════════════════════
    NAVIGATION
 ══════════════════════════════ */
+
+/* Ordered list of form sections for step navigation */
+const FORM_STEPS = [
+  'overview','images','interior','mechanical','bodyframe',
+  'lights','features','exterior','tyres','insurance','warranty','registration'
+];
+
 function showSection(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('s-' + id).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   document.getElementById('main-content').scrollTo({ top: 0, behavior: 'smooth' });
-  // Auto-close sidebar on mobile/tablet
   if (window.innerWidth < 1024) closeSidebar();
+
+  /* Show/hide step indicator on mobile */
+  updateStepIndicator(id);
+
+  /* Refresh vehicle list when navigating to it */
+  if (id === 'vehiclelist' && typeof renderVehicleList === 'function') {
+    setTimeout(renderVehicleList, 50);
+  }
+}
+
+/* Build/update the mobile step indicator */
+function updateStepIndicator(currentId) {
+  const isMobile     = window.innerWidth < 1024;
+  const isFormStep   = FORM_STEPS.includes(currentId);
+  const bar          = document.getElementById('step-indicator-bar');
+  const mobileNav    = document.getElementById('mobile-step-nav');
+  const inner        = document.getElementById('step-indicator-inner');
+
+  if (!bar) return;
+
+  if (!isMobile || !isFormStep) {
+    bar.style.display       = 'none';
+    if (mobileNav) mobileNav.style.display = 'none';
+    return;
+  }
+
+  /* Build step dots */
+  bar.style.display       = 'block';
+  if (mobileNav) mobileNav.style.display = 'flex';
+
+  const curIdx = FORM_STEPS.indexOf(currentId);
+  const STEP_LABELS = [
+    'Overview','Images','Interior','Mechanical','Body',
+    'Lights','Features','Exterior','Tyres','Insurance','Warranty','Registration'
+  ];
+
+  inner.innerHTML = FORM_STEPS.map(function(s, i) {
+    const cls = i === curIdx ? 'step-dot active' : i < curIdx ? 'step-dot done' : 'step-dot';
+    return '<div class="' + cls + '" title="' + STEP_LABELS[i] + '">' + (i < curIdx ? '✓' : (i + 1)) + '</div>';
+  }).join('');
+
+  /* Update prev/next buttons */
+  const prevBtn  = document.getElementById('msn-prev');
+  const nextBtn  = document.getElementById('msn-next');
+  const label    = document.getElementById('msn-label');
+  if (label)   label.textContent   = 'Step ' + (curIdx + 1) + ' of ' + FORM_STEPS.length;
+  if (prevBtn) prevBtn.disabled    = curIdx === 0;
+  if (nextBtn) nextBtn.textContent = curIdx === FORM_STEPS.length - 1 ? 'Done ✓' : 'Next →';
+}
+
+function mobileStepPrev() {
+  const cur = getCurrentFormStep();
+  const idx = FORM_STEPS.indexOf(cur);
+  if (idx > 0) {
+    const targetNav = document.querySelector('.nav-item[onclick*="' + FORM_STEPS[idx - 1] + '"]');
+    showSection(FORM_STEPS[idx - 1], targetNav);
+  }
+}
+
+function mobileStepNext() {
+  const cur = getCurrentFormStep();
+  const idx = FORM_STEPS.indexOf(cur);
+  if (idx < FORM_STEPS.length - 1) {
+    const targetNav = document.querySelector('.nav-item[onclick*="' + FORM_STEPS[idx + 1] + '"]');
+    showSection(FORM_STEPS[idx + 1], targetNav);
+  } else {
+    /* Last step — save draft */
+    saveDraft();
+    showToast('All steps complete! Draft saved ✓');
+  }
+}
+
+function getCurrentFormStep() {
+  for (let i = 0; i < FORM_STEPS.length; i++) {
+    const sec = document.getElementById('s-' + FORM_STEPS[i]);
+    if (sec && sec.classList.contains('active')) return FORM_STEPS[i];
+  }
+  return FORM_STEPS[0];
 }
 
 /* ══════════════════════════════

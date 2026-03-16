@@ -48,9 +48,9 @@
     <div class="login-form">
       <div class="login-field">
         <span class="login-field-icon">
-          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 1114 0H3z"/></svg>
+          <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
         </span>
-        <input id="login-username" type="text" placeholder="Username" autocomplete="username"/>
+        <input id="login-username" type="text" placeholder="Email or Username" autocomplete="username"/>
       </div>
 
       <div class="login-field">
@@ -137,6 +137,7 @@
     <div class="sidebar-label">Dashboard</div>
     <div class="nav-item analytics-nav" onclick="showSection('analytics', this)"><span class="dot analytics-dot"></span>📊 Analytics</div>
     <div class="nav-item analytics-nav" onclick="showSection('performance', this)"><span class="dot analytics-dot"></span>🏆 Performance</div>
+    <div class="nav-item" onclick="showSection('vehiclelist', this); renderVehicleList();"><span class="dot" style="background:#22c55e"></span>🚗 Vehicle List</div>
 
     <div class="sidebar-label" style="margin-top:10px;">Sections</div>
     <div class="nav-item active"  onclick="showSection('overview',      this)"><span class="dot"></span>Overview</div>
@@ -190,6 +191,86 @@
         </button>
       </div>
     </div>
+
+    <!-- ── Step Indicator (mobile only — shows which step of form you're on) ── -->
+    <div class="step-indicator-bar" id="step-indicator-bar" style="display:none;">
+      <div class="step-indicator-inner" id="step-indicator-inner">
+        <!-- Steps injected by JS -->
+      </div>
+    </div>
+
+    <!-- ── Mobile Step Navigation (prev/next buttons — mobile only) ── -->
+    <div class="mobile-step-nav" id="mobile-step-nav" style="display:none;">
+      <button class="btn btn-ghost msn-btn" id="msn-prev" onclick="mobileStepPrev()">← Prev</button>
+      <span class="msn-label" id="msn-label">Step 1 of 12</span>
+      <button class="btn btn-primary msn-btn" id="msn-next" onclick="mobileStepNext()">Next →</button>
+    </div>
+
+    <!-- ════════════════════════
+         SECTION: VEHICLE LIST
+    ════════════════════════ -->
+    <section class="section" id="s-vehiclelist">
+      <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h2>Vehicle Evaluations</h2>
+          <p>All saved evaluation records</p>
+        </div>
+        <button class="btn btn-primary" onclick="showSection('overview', document.querySelector('.nav-item.active')); window.scrollTo(0,0);">
+          ＋ New Evaluation
+        </button>
+      </div>
+
+      <!-- Staff notice -->
+      <div class="staff-only-notice" style="display:none;">
+        <span>👤</span>
+        <span>Showing <strong>your own evaluations</strong> only. Admin can see all.</span>
+      </div>
+
+      <!-- Search & Filter bar -->
+      <div class="vl-filter-bar">
+        <div class="vl-search-wrap">
+          <span class="vl-search-icon">🔍</span>
+          <input id="vl-search" type="text" placeholder="Search by make, model, reg no, colour..."
+                 oninput="renderVehicleList()" class="vl-search"/>
+        </div>
+        <select id="vl-fuel" class="filter-select" onchange="renderVehicleList()">
+          <option value="">All Fuel Types</option>
+          <option>Diesel</option><option>Petrol</option>
+          <option>CNG</option><option>Electric</option><option>Hybrid</option>
+        </select>
+        <select id="vl-condition" class="filter-select" onchange="renderVehicleList()">
+          <option value="">All Conditions</option>
+          <option>Excellent</option><option>Good</option>
+          <option>Average</option><option>Poor</option>
+        </select>
+        <select id="vl-month" class="filter-select" onchange="renderVehicleList()">
+          <option value="">All Months</option>
+          <option value="1">January</option><option value="2">February</option>
+          <option value="3">March</option><option value="4">April</option>
+          <option value="5">May</option><option value="6">June</option>
+          <option value="7">July</option><option value="8">August</option>
+          <option value="9">September</option><option value="10">October</option>
+          <option value="11">November</option><option value="12">December</option>
+        </select>
+        <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;" onclick="clearVLFilters()">✕ Clear</button>
+      </div>
+
+      <!-- Stats strip -->
+      <div class="vl-stats-strip" id="vl-stats-strip">
+        <div class="vl-stat"><span id="vls-total">0</span><label>Total</label></div>
+        <div class="vl-stat"><span id="vls-diesel">0</span><label>Diesel</label></div>
+        <div class="vl-stat"><span id="vls-petrol">0</span><label>Petrol</label></div>
+        <div class="vl-stat"><span id="vls-accident">0</span><label>Accident</label></div>
+        <div class="vl-stat"><span id="vls-good">0</span><label>Good Cond.</label></div>
+      </div>
+
+      <!-- Vehicle cards grid -->
+      <div class="vl-grid" id="vl-grid">
+        <div style="text-align:center;color:var(--muted);padding:40px;grid-column:1/-1;">
+          No evaluations yet. Save a draft to add one.
+        </div>
+      </div>
+    </section>
 
     <!-- ════════════════════════
          SECTION: OVERVIEW
@@ -1329,6 +1410,9 @@
           <div class="field"><label>Username (used to login)</label>
             <input id="nu-username" placeholder="e.g. john_smith"
                    autocomplete="off" style="text-transform:lowercase"/></div>
+          <div class="field"><label>Email (optional — also for login)</label>
+            <input id="nu-email" type="email" placeholder="e.g. john@epiccars.in"
+                   autocomplete="off"/></div>
           <div class="field"><label>Password</label>
             <div style="position:relative;">
               <input id="nu-password" type="text"

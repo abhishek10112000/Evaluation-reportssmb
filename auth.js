@@ -12,8 +12,10 @@ var EPIC_SEEDED_KEY  = 'epic_seeded_v4';   /* one-time flag */
 
 /* ── Role Permissions ── */
 var EPIC_PERMS = {
-  admin: { edit:true, delete:true,  viewAll:true,  manageUsers:true,  pdf:true },
-  staff: { edit:true, delete:false, viewAll:false, manageUsers:false, pdf:true }
+  admin:     { edit:true, delete:true,  viewAll:true,  manageUsers:true,  pdf:true },
+  staff:     { edit:true, delete:false, viewAll:false, manageUsers:false, pdf:true },
+  evaluator: { edit:true, delete:false, viewAll:false, manageUsers:false, pdf:true },
+  sales:     { edit:false,delete:false, viewAll:false, manageUsers:false, pdf:false }
 };
 
 /* ══════════════════════════════════════
@@ -87,8 +89,8 @@ function epicBootUsers() {
 
   /* First ever run — write defaults */
   var defaults = [
-    { id:1, name:'Administrator', username:'admin',  password:'admin123', role:'admin' },
-    { id:2, name:'Staff User 1',  username:'staff1', password:'staff123', role:'staff' }
+    { id:1, name:'Administrator', username:'admin',  email:'admin@epiccars.in',    password:'admin123', role:'admin' },
+    { id:2, name:'Staff User 1',  username:'staff1', email:'staff1@epiccars.in',   password:'staff123', role:'staff' }
   ];
   epicSaveUsers(defaults);
   localStorage.setItem(EPIC_SEEDED_KEY, '1');
@@ -130,15 +132,19 @@ function can(perm) {
 ══════════════════════════════ */
 function doLogin(username, password) {
   var users = epicGetUsers();
-  var un    = (username || '').trim();
+  var input = (username || '').trim().toLowerCase();
 
-  console.log('[EPIC] Login attempt:', un);
+  console.log('[EPIC] Login attempt:', input);
   console.log('[EPIC] Users in storage (' + users.length + '):', users.map(function(u){ return u.username; }).join(', '));
 
   var found = null;
   for (var i = 0; i < users.length; i++) {
     var u = users[i];
-    if (u.username.trim() === un && u.password === password) {
+    /* Match by username OR email — case insensitive */
+    var unMatch    = u.username.trim().toLowerCase() === input;
+    var emailMatch = u.email && u.email.trim().toLowerCase() === input;
+    var pMatch     = u.password === password;
+    if ((unMatch || emailMatch) && pMatch) {
       found = u;
       break;
     }
@@ -317,6 +323,7 @@ function addUser() {
     id:       Date.now(),
     name:     name,
     username: un,
+    email:    document.getElementById('nu-email') ? document.getElementById('nu-email').value.trim().toLowerCase() : '',
     password: pw,
     role:     role
   };
